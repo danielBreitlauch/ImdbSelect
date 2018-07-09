@@ -1,33 +1,30 @@
 from json import JSONDecodeError
+from collections import Counter
+from plexapi.server import PlexServer
 
 import requests
 from imdb import IMDb
-
-url = 'http://barkeeper.local.:7878'
-apiKey = '601218dcca124ec4a0c877ec3284d8da'
-base_path = '/tank/Media/Filme'
-profile = '6'
+import config
 
 ia = IMDb()
 
-#r = requests.get('http://barkeeper.local.:7878/api/profile?apikey=601218dcca124ec4a0c877ec3284d8da')
-#print(r.text)
 
-
-def add_movie(imdb_id):
+def get_movie_data(imdb_id):
     try:
-        print("adding: " + imdb_id)
-        r = requests.get(url + '/api/movie/lookup/imdb?imdbId=' + imdb_id + '&apikey=' + apiKey)
-        movie = r.json()
+        r = requests.get(
+            config.radarr_url + '/api/movie/lookup/imdb?imdbId=' + imdb_id + '&apikey=' + config.radarr_apiKey)
+        return r.json()
     except JSONDecodeError:
-        return
+        return None
 
-    movie["ProfileId"] = profile
-    movie["rootFolderPath"] = base_path
+
+def add_movie(movie):
+    movie["ProfileId"] = config.radarr_profile
+    movie["rootFolderPath"] = config.radarr_base_path
     movie["monitored"] = "true"
 
-    print("adding: " + movie['title'])
-    requests.post(url + '/api/movie?apikey=' + apiKey, None, movie)
+    r = requests.post(config.radarr_url + '/api/movie?apikey=' + config.radarr_apiKey, None, movie)
+    return r.status_code
 
 
 def imdb_id_list_from_person(name, role='actor'):
@@ -45,5 +42,25 @@ def imdb_id_list_from_person(name, role='actor'):
     return ids
 
 
-for imdb_id in imdb_id_list_from_person('Johnny Depp'):
-    add_movie(imdb_id)
+def most_plex_actors():
+    plex = PlexServer(config.plex_url, config.plex_token)
+    actors = Counter([role.tag.encode('utf-8') for movie in plex.library.section(config.plex_movie_lib_name).all() for role in movie.roles])
+    sorted_limited_actors = sorted(actors.items(), key=lambda x: x[1], reverse=True)[:config.author_min_movie_threshold]
+    return [actor[0].decode("utf-8") for actor in sorted_limited_actors]
+
+
+actors = most_plex_actors()
+actors += config.actors
+
+for actor in actors:
+    print("adding all movies with: " + actor)
+    for imdb_id in imdb_id_list_from_person(actor):
+        movie = get_movie_data(imdb_id)
+        if not movie:
+            continue
+
+        status = add_movie(movie)
+        if status / 100 == 4:
+            print("\t" + movie['title'] + " exists already.")
+        else:
+            print("\t" + movie['title'] + " added.")
