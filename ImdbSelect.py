@@ -2,10 +2,14 @@
 
 from json import JSONDecodeError
 from collections import Counter
+from dateutil import parser
+from datetime import datetime, timedelta, timezone
+
 from plexapi.server import PlexServer
 
 import requests
 from imdb import IMDb
+
 import config
 
 ia = IMDb()
@@ -27,6 +31,23 @@ def add_movie(movie):
 
     r = requests.post(config.radarr_url + '/api/movie?apikey=' + config.radarr_apiKey, None, movie)
     return r.status_code
+
+
+def remove_movie(movie):
+    requests.delete(config.radarr_url + '/api/movie/' + str(movie['id']) + '?apikey=' + config.radarr_apiKey)
+
+
+def get_all_movies_in_radarr():
+    r = requests.get(config.radarr_url + '/api/movie?apikey=' + config.radarr_apiKey)
+    return r.json()
+
+
+def get_all_downloaded_movies():
+    return [movie for movie in get_all_movies_in_radarr() if movie['downloaded']]
+
+
+def get_all_non_downloaded_movies():
+    return [movie for movie in get_all_movies_in_radarr() if not movie['downloaded']]
 
 
 def imdb_id_list_from_person(name, role='actor'):
@@ -51,18 +72,47 @@ def most_plex_actors():
     return [actor[0].decode("utf-8") for actor in sorted_limited_actors]
 
 
-actors = most_plex_actors()
-actors += config.actors
+def get_movies_from_actors(actors):
+    movies = []
+    for actor in actors:
+        for imdb_id in imdb_id_list_from_person(actor):
+            movie = get_movie_data(imdb_id)
+            if movie:
+                movies.append(movie)
+    return movies
 
-for actor in actors:
-    print("adding all movies with: " + actor)
-    for imdb_id in imdb_id_list_from_person(actor):
-        movie = get_movie_data(imdb_id)
-        if not movie:
-            continue
 
-        status = add_movie(movie)
-        if status / 100 == 4:
-            print("\t" + movie['title'] + " exists already.")
-        else:
-            print("\t" + movie['title'] + " added.")
+def add_all(actors):
+    for actor in actors:
+        print("adding all movies with: " + actor)
+        for imdb_id in imdb_id_list_from_person(actor):
+            movie = get_movie_data(imdb_id)
+            if not movie:
+                continue
+
+            status = add_movie(movie)
+            if status / 100 == 4:
+                print("\t" + movie['title'] + " exists already.")
+            else:
+                print("\t" + movie['title'] + " added.")
+
+
+def delete_non_downloaded_movies_added_ago(time_delta=timedelta(days=1)):
+    movies = get_all_non_downloaded_movies()
+    threshold = datetime.now(timezone.utc) - time_delta
+
+    filtered = [movie for movie in movies if parser.parse(movie['added']) > threshold]
+
+    count = len(filtered)
+    for movie in filtered:
+        print(count, movie['title'])
+        count -= 1
+        remove_movie(movie)
+
+
+# actors = most_plex_actors()
+# actors += config.actors
+
+# filtered = filter_existing_movies(actors)
+
+
