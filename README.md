@@ -30,9 +30,6 @@ Run
 Generally edit config.py.
 ```
 cp config_example.py config.py
-```
 
-### Use existing scripts: ###
-```
 python imdbSelect.py
 ```
