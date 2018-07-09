@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from json import JSONDecodeError
 from collections import Counter
 from plexapi.server import PlexServer

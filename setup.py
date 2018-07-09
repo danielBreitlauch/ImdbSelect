@@ -15,7 +15,7 @@ setup(
     install_requires=[
         'requests',
         'IMDbPY',
-        'python-plexapi'
+        'plexapi'
     ],
     long_description=open('README.md').read(),
     keywords=['online food shop', 'home automation', 'codecheck', 'wunderlist', 'barcode', 'anti captcha']
