@@ -1,5 +1,4 @@
 from imdb import IMDb
-import config
 
 
 class Imdb:

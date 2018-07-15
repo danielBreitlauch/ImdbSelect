@@ -31,5 +31,5 @@ Generally edit config.py.
 ```
 cp config_example.py config.py
 
-python imdbSelect.py
+python main.py
 ```

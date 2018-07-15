@@ -4,9 +4,9 @@ plex_token = '5dxKTPbci5QeqGnpsNpu'
 plex_movie_lib_name = 'Movies'
 
 radarr_url = 'http://localhost:7878'
-radarr_apiKey = '601218dcxx124ec4a0c877ec3284d8da'
+radarr_api_key = '601218dcxx124ec4a0c877ec3284d8da'
 radarr_base_path = '/tank/Media/Filme'
-radarr_profile = '6'
+radarr_quality_profile = '6'
 
 actors = [
     'Johnny Depp',

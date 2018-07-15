@@ -6,11 +6,11 @@ from Preferences import Preferences
 from Radarr import Radarr
 
 
-class ImdbSelect():
-    def __init__(self):
+class ImdbSelect:
+    def __init__(self, config):
+        self.radarr = Radarr(config.radarr_url, config.radarr_base_path, config.radarr_api_key, config.radarr_quality_profile)
         self.ask = Preferences()
         self.imdb = Imdb()
-        self.radarr = Radarr()
 
     def get_movies_from_actors(self, actors):
         movies = []
@@ -20,6 +20,13 @@ class ImdbSelect():
                 if movie:
                     movies.append(movie)
         return movies
+
+    def add_all(self, actors, rating_above=0, votes_above=0, manual=False):
+        for actor in actors:
+            print("going through all movies with: " + actor)
+            movie_data_map = self.collect_movie_data(actor)
+            movies_to_add = self.choices(movie_data_map, rating_above, votes_above, manual)
+            self.add_movies(movies_to_add)
 
     def collect_movie_data(self, actor):
         movie_data_map = {}
@@ -60,13 +67,6 @@ class ImdbSelect():
                 print("\t" + movie['title'] + " exists already.")
             else:
                 print("\t" + movie['title'] + " added.")
-
-    def add_all(self, actors, rating_above=0, votes_above=0, manual=False):
-        for actor in actors:
-            print("going through all movies with: " + actor)
-            movie_data_map = self.collect_movie_data(actor)
-            movies_to_add = self.choices(movie_data_map, rating_above, votes_above, manual)
-            self.add_movies(movies_to_add)
 
     def delete_non_downloaded_movies_added_ago(self, time_delta=timedelta(days=1)):
         movies = self.radarr.get_all_non_downloaded_movies()
