@@ -32,8 +32,16 @@ class Preferences:
             print("Using previous answer: " + str(self.selections[imdb_id]))
             return self.selections[imdb_id]
 
-        inp = input("Adding? (y/n): ") == "y"
-        self.selections[imdb_id] = inp
-        self.save()
-
-        return inp
+        for i in range(5):
+            inp = input("Adding yes/no/undecided? (y/n/u): ")
+            if inp == "y":
+                self.selections[imdb_id] = True
+                self.save()
+                return True
+            if inp == "n":
+                self.selections[imdb_id] = False
+                self.save()
+                return False
+            if inp == "u":
+                return False
+        return False
