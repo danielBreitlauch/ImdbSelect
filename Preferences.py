@@ -24,9 +24,7 @@ class Preferences:
         return imdb_id in self.selections and not self.selections[imdb_id]
 
     def ask(self, imdb_id, movie):
-        print(movie['title'] + " (" + str(movie['year']) + ") - https://www.imdb.com/title/" + imdb_id +
-              " (ratings: " + str(movie['ratings']['value']) + "/10, votes: " + str(
-            movie['ratings']['votes']) + ")")
+        print(str(movie))
 
         if imdb_id in self.selections:
             print("Using previous answer: " + str(self.selections[imdb_id]))

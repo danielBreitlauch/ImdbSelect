@@ -16,7 +16,9 @@ setup(
         'requests',
         'IMDbPY',
         'plexapi',
-        'jsonpickle'
+        'jsonpickle',
+        'python-dateutil',
+        'colorama'
     ],
     long_description=open('README.md').read(),
     keywords=['online food shop', 'home automation', 'codecheck', 'wunderlist', 'barcode', 'anti captcha']

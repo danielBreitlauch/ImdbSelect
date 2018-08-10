@@ -8,9 +8,7 @@ radarr_api_key = '601218dcxx124ec4a0c877ec3284d8da'
 radarr_base_path = '/tank/Media/Filme'
 radarr_quality_profile = '6'
 
-actors = [
-    'Johnny Depp',
-    'Tom Hiddleston',
+actors = {
     'Joseph Gordon-Levitt',
     'Simon Pegg',
     'Willem Dafoe',
@@ -18,8 +16,11 @@ actors = [
     'Dustin Hoffman',
     'Patrick Stewart',
     'Cate Blanchett',
-    'Alan Tudyk',
-    'Karl Urban'
-]
+    'Alan Tudyk'
+}
+
+actors_blacklist = {
+    'Sammo Hung'
+}
 
 author_min_movie_threshold = 10
