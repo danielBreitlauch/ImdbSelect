@@ -3,3 +3,5 @@ config.py
 moviePreference.db
 simplelog.log
 *.pyc
+*.egg-info
+dist
