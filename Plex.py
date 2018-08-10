@@ -14,5 +14,4 @@ class Plex:
 
         sorted_actors = sorted(actors.items(), key=lambda x: x[1], reverse=True)
         sorted_limited_actors = sorted_actors[:self.author_min_movie_threshold]
-        return [actor[0].decode("utf-8") for actor in sorted_limited_actors]
-
+        return {actor[0].decode("utf-8") for actor in sorted_limited_actors}
