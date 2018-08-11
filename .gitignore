@@ -1,6 +1,6 @@
 .idea/
 config.py
-moviePreference.db
+*.db
 simplelog.log
 *.pyc
 *.egg-info

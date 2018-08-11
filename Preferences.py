@@ -2,7 +2,8 @@ import jsonpickle
 
 
 class Preferences:
-    def __init__(self):
+    def __init__(self, imdb):
+        self.imdb = imdb
         self.file_name = "moviePreference.db"
         self.selections = self.load()
 
@@ -23,7 +24,11 @@ class Preferences:
     def is_answered_no(self, imdb_id):
         return imdb_id in self.selections and not self.selections[imdb_id]
 
-    def ask(self, imdb_id, movie):
+    def ask(self, imdb_id, movie, prepare=False):
+        if prepare:
+            self.imdb.get_movie_summary(imdb_id)
+            return
+
         print(str(movie))
 
         if imdb_id in self.selections:
@@ -31,7 +36,7 @@ class Preferences:
             return self.selections[imdb_id]
 
         for i in range(5):
-            inp = input("Adding yes/no/undecided? (y/n/u): ")
+            inp = input("Adding yes/no/undecided/show summary? (y/n/u/s): ")
             if inp == "y":
                 self.selections[imdb_id] = True
                 self.save()
@@ -40,6 +45,8 @@ class Preferences:
                 self.selections[imdb_id] = False
                 self.save()
                 return False
+            if inp == "s":
+                print(self.imdb.get_movie_summary(imdb_id) + "\n")
             if inp == "u":
                 return False
         return False

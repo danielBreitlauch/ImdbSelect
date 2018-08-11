@@ -1,6 +1,7 @@
 from json import JSONDecodeError
 import requests
 
+from FailedToGetMovies import FailedToGetMovies
 from Movie import Movie
 
 
@@ -16,24 +17,32 @@ class Radarr:
         self.api_key = api_key
         self.quality_profile = quality_profile
 
+        self.failed = FailedToGetMovies()
+
         self.cache_all_movie_data = {}
         self.all_movies_by_imdb = {movie.imdb_id(): movie for movie in self.get_all_movies_in_radarr() if movie.has_imdb_id()}
 
         for movie in [movie for movie in self.get_all_movies_in_radarr() if not movie.has_imdb_id()]:
             print("warning! this movie does not hav a imdb id: " + str(movie))
 
-    def get_movie(self, imdb_id):
+    def get_movie(self, imdb_id, retry=True):
         if imdb_id in self.all_movies_by_imdb:
             return self.all_movies_by_imdb[imdb_id]
 
-        if imdb_id not in self.cache_all_movie_data:
-            try:
-                r = requests.get(
-                    self.url + '/api/movie/lookup/imdb?imdbId=' + imdb_id + '&apikey=' + self.api_key)
-                self.cache_all_movie_data[imdb_id] = Movie(r.json(), imdb_id)
-            except JSONDecodeError:
-                raise MovieNotFoundError(imdb_id)
-        return self.cache_all_movie_data[imdb_id]
+        if imdb_id in self.cache_all_movie_data:
+            return self.cache_all_movie_data[imdb_id]
+
+        if not retry and self.failed.failed_already(imdb_id):
+            raise MovieNotFoundError(imdb_id)
+
+        try:
+            r = requests.get(
+                self.url + '/api/movie/lookup/imdb?imdbId=' + imdb_id + '&apikey=' + self.api_key)
+            self.cache_all_movie_data[imdb_id] = Movie(r.json(), imdb_id)
+            return self.cache_all_movie_data[imdb_id]
+        except JSONDecodeError:
+            self.failed.mark_failed(imdb_id)
+            raise MovieNotFoundError(imdb_id)
 
     def add_movie(self, movie):
         movie.add(self.quality_profile, self.base_path)
