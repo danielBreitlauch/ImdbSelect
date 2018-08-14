@@ -18,7 +18,9 @@ setup(
         'plexapi',
         'jsonpickle',
         'python-dateutil',
-        'colorama'
+        'colorama',
+        'bs4',
+        'parsedatetime',
     ],
     long_description=open('README.md').read(),
     keywords=['online food shop', 'home automation', 'codecheck', 'wunderlist', 'barcode', 'anti captcha']
