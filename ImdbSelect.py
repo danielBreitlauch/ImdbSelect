@@ -23,11 +23,11 @@ class ImdbSelect:
         return movies
 
     def add_all(self, actors, rating_above=0, votes_above=0, manual=False, retry=True):
-        for actor in actors:
-            print("going through all movies with: " + actor)
+        for count, actor in enumerate(actors):
+            print("[ " + str(count) + "/" + str(len(actors)) + " ] going through all movies with: " + actor)
             movie_data_map, error_list = self.collect_movie_data(actor, retry)
-            err_title = [self.imdb.get_movie_title(imdb_id) for imdb_id in error_list]
-            print('Could not find ' + str(len(error_list)) + ': "' + '", "'.join(err_title) + '"')
+            err_title = [self.imdb.get_movie_title_year(imdb_id) for imdb_id in error_list]
+            print('Could not find ' + str(len(error_list)) + ': ' + ', '.join(err_title))
             self.choices(movie_data_map, rating_above, votes_above, manual, prepare=True)
             movies_to_add = self.choices(movie_data_map, rating_above, votes_above, manual)
             self.add_movies(movies_to_add)
@@ -37,10 +37,8 @@ class ImdbSelect:
         error_list = []
         movies = self.imdb.imdb_id_list_from_person(actor)
         print("[ " + str(len(movies)) + " ] ", end='', flush=True)
-        count = 0
         next_print = 10
-        for imdb_id in movies:
-            count += 1
+        for count, imdb_id in enumerate(movies):
             try:
                 if not self.ask.is_answered_no(imdb_id) and not self.radarr.movie_exist(imdb_id):
                     movie_data_map[imdb_id] = self.radarr.get_movie(imdb_id, retry)
