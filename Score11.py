@@ -41,14 +41,20 @@ class Score11:
 
         movies = sorted(movies.values(), key=lambda m: m['rating'])
         movies = [m for m in movies if m['rating'] > minimum_rating]
+        return self.search_movies(movies)
 
+    def search_movies(self, movies):
         imdb_ids = []
         for count, movie in enumerate(movies, start=1):
             print("[ " + str(count) + "/" + str(len(movies)) + " ]")
-            print("\t" + movie['title'] + " (" + str(movie['year']) + ") score-11 rating: " + str(movie['rating']))
+            print("\t" + movie['title'] + " (" + str(movie['year']) + ") score11: " + str(movie['rating']))
+            match = self.imdb.search_movie(movie['title'], movie['year'], False)
+            if match:
+                print("\tFound: " + match['title'] + " (" + str(match['year']) + ")")
+                imdb_ids.append(match.movieID)
+                continue
 
             self.get_movie_details(movie)
-
             found = False
             for title, year in movie['title_years']:
                 print("\tTry: " + title + " (" + str(year) + ")")
@@ -127,7 +133,7 @@ class Score11:
     def get_movie_details(self, movie):
         r = requests.get(Score11.base_url + movie['link'])
         soup = BeautifulSoup(r.text, 'html.parser')
-        title_years = [(movie['title'], movie['year'])]
+        title_years = []
         title, year = self.extract_title_year(soup.find('h1', {'class': "mt1"}).get_text())
         if title and year:
             title_years.append((title, year))
