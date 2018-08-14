@@ -1,6 +1,7 @@
 .idea/
 config.py
 *.db
+venv/
 simplelog.log
 *.pyc
 *.egg-info
