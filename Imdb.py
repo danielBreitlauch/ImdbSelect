@@ -66,22 +66,22 @@ class Imdb:
         name2 = name2.translate(Imdb.punctuation).replace('  ', ' ').lower()
         return name1 == name2
 
-    def search_movie(self, title, year=None, strict=True):
-        candidates = []
+    def name_candidates(self, title, strict=True):
         for movie in self.ia.search_movie(title):
-            if movie['kind'] != 'movie':
+            if movie['kind'] not in  ['movie', 'short']:
                 continue
             if movie['title'] == title or not strict and self.compare_wo_punctuation(movie['title'], title):
-                candidates.append(movie)
+                yield movie
                 continue
             self.ia.update(movie, 'release info')
             if 'akas' in movie:
                 for aka in movie['akas']:
                     if title.lower() == aka.split('::')[0].lower():
-                        candidates.append(movie)
+                        yield movie
                         break
 
-        for movie in candidates:
+    def search_movie(self, title, year=None, strict=True):
+        for movie in self.name_candidates(title, strict):
             if not year or movie['year'] == year:
                 return movie
 
