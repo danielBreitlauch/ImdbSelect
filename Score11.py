@@ -1,8 +1,9 @@
-import requests
 from bs4 import BeautifulSoup
 import re
-from Imdb import Imdb
 from colorama import Fore, Style
+from urllib3.util import Retry
+from requests.adapters import HTTPAdapter
+from requests import Session
 
 
 class Score11:
@@ -18,8 +19,25 @@ class Score11:
 
     def __init__(self, imdb):
         self.imdb = imdb
+        self.session = Session()
+        self.session.mount('https://', HTTPAdapter(
+            max_retries=Retry(total=5, status_forcelist=[500, 503])
+        ))
 
-    def imdb_id_list_from_sneak(self, city, cinema=None, screening=None, minimum_rating=0.0):
+    def imdb_ids_for_sneak(self, city, cinema=None, screening=None, minimum_rating=0.0):
+        movies = self.score11_movies(city, cinema, screening, minimum_rating)
+        imdb_ids = []
+        for count, movie in enumerate(movies, start=1):
+            print("[ " + str(count) + "/" + str(len(movies)) + " ]")
+            print("\t" + movie['title'] + " (" + str(movie['year']) + ") score11: " + str(movie['rating']))
+            imdb_id = self.imdb_id_for_movie(movie)
+            if imdb_id:
+                imdb_ids.append(imdb_id)
+            else:
+                print(Fore.RED + '\tNo match on imdb found' + Style.RESET_ALL)
+        return imdb_ids
+
+    def score11_movies(self, city, cinema=None, screening=None, minimum_rating=0.0):
         if not cinema:
             cinemas = self.sneak_cinema_options(city)
             print("Found these cinemas: " + ', '.join(cinemas))
@@ -34,42 +52,29 @@ class Score11:
         else:
             screenings = {cinema: [screening]}
 
-        movies = {}  # is a dict to keep the movie list unique
+        score11_movies = {}  # is a dict to keep the movie list unique
         for cinema in cinemas:
             for screening in screenings[cinema]:
-                movies.update(self.get_sneak_titles(city, cinema, screening))
+                score11_movies.update(self.get_sneak_titles(city, cinema, screening))
 
-        movies = sorted(movies.values(), key=lambda m: m['rating'])
-        movies = [m for m in movies if m['rating'] > minimum_rating]
-        return self.search_movies(movies)
+        score11_movies = sorted(score11_movies.values(), key=lambda m: m['rating'])
+        return [m for m in score11_movies if m['rating'] > minimum_rating]
 
-    def search_movies(self, movies):
-        imdb_ids = []
-        for count, movie in enumerate(movies, start=1):
-            print("[ " + str(count) + "/" + str(len(movies)) + " ]")
-            print("\t" + movie['title'] + " (" + str(movie['year']) + ") score11: " + str(movie['rating']))
-            match = self.imdb.search_movie(movie['title'], movie['year'], False)
+    def imdb_id_for_movie(self, movie):
+        match = self.imdb.search_movie(movie['title'], movie['year'], False)
+        if match:
+            return 'tt' + match.movieID
+
+        self.get_movie_details(movie)
+        for title, year in movie['title_years']:
+            match = self.imdb.search_movie(title, year, False)
             if match:
-                print("\tFound: " + match['title'] + " (" + str(match['year']) + ")")
-                imdb_ids.append(match.movieID)
-                continue
+                return 'tt' + match.movieID
 
-            self.get_movie_details(movie)
-            found = False
-            for title, year in movie['title_years']:
-                print("\tTry: " + title + " (" + str(year) + ")")
-                match = self.imdb.search_movie(title, year, False)
-                if match:
-                    print("\tFound: " + match['title'] + " (" + str(match['year']) + ")")
-                    imdb_ids.append(match.movieID)
-                    found = True
-                    break
-            if not found:
-                print(Fore.RED + '\tNo match' + Style.RESET_ALL)
-        return imdb_ids
+        return None
 
     def sneak_cinema_options(self, city):
-        r = requests.get(Score11.base_url + '/sneakpreview.php', params={Score11.city_param: city})
+        r = self.session.get(Score11.base_url + '/sneakpreview.php', params={Score11.city_param: city})
         soup = BeautifulSoup(r.text, 'html.parser')
         select = soup.find('select', {'name': Score11.cinema_param})
         options = select.findAll('option')
@@ -84,7 +89,7 @@ class Score11:
             Score11.city_param: city,
             Score11.cinema_param: cinema
         }
-        r = requests.get(Score11.base_url + '/sneakpreview.php', params=params)
+        r = self.session.get(Score11.base_url + '/sneakpreview.php', params=params)
         soup = BeautifulSoup(r.text, 'html.parser')
         select = soup.find('select', {'name': Score11.screening_param})
         options = select.findAll('option')
@@ -104,7 +109,7 @@ class Score11:
         page = 1
         while True:
             params[Score11.page_param] = page
-            r = requests.get(Score11.base_url + '/sneakpreview.php', params=params)
+            r = self.session.get(Score11.base_url + '/sneakpreview.php', params=params)
             page_movies = self.parse_page(r.text)
             movies.update(page_movies)
             page += 1
@@ -131,7 +136,7 @@ class Score11:
         return movies
 
     def get_movie_details(self, movie):
-        r = requests.get(Score11.base_url + movie['link'])
+        r = self.session.get(Score11.base_url + movie['link'])
         soup = BeautifulSoup(r.text, 'html.parser')
         title_years = []
         title, year = self.extract_title_year(soup.find('h1', {'class': "mt1"}).get_text())
@@ -152,9 +157,3 @@ class Score11:
             year = int(m.group(2))
             return title, year
         return None, None
-
-
-s = Score11(Imdb())
-
-for x in s.imdb_id_list_from_sneak('Paderborn', 'Cineplex', minimum_rating=8.0):
-    print(x)

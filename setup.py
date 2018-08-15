@@ -21,6 +21,7 @@ setup(
         'colorama',
         'bs4',
         'parsedatetime',
+        'urllib3',
     ],
     long_description=open('README.md').read(),
     keywords=['online food shop', 'home automation', 'codecheck', 'wunderlist', 'barcode', 'anti captcha']
