@@ -55,7 +55,7 @@ class Imdb:
 
         movie = self.ia.get_movie(self.transform_id(imdb_id))
         if 'year' in movie:
-            title = movie['title'] + " (" + movie['year'] + ")"
+            title = movie['title'] + " (" + str(movie['year']) + ")"
         else:
             title = movie['title'] + " (????)"
         self.title_cache[imdb_id] = title
