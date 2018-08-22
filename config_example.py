@@ -22,5 +22,3 @@ actors = {
 actors_blacklist = {
     'Sammo Hung'
 }
-
-author_min_movie_threshold = 10
