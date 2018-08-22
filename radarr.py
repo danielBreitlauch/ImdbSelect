@@ -23,7 +23,7 @@ class Radarr:
         self.all_movies_by_imdb = {m.imdb_id(): m for m in self.get_all_movies_in_radarr() if m.has_imdb_id()}
 
         for movie in [movie for movie in self.get_all_movies_in_radarr() if not movie.has_imdb_id()]:
-            print("warning! this movie does not hav a imdb id: " + str(movie))
+            print("warning! this movie does not have an imdb id: " + str(movie))
 
     def get_movie(self, imdb_id, retry=True):
         if imdb_id in self.all_movies_by_imdb:
@@ -48,8 +48,11 @@ class Radarr:
 
         r = requests.post(self.url + '/api/movie', None, movie.raw(), params={'apikey': self.api_key})
 
-        if r.status_code == 200 and movie.has_imdb_id():
-            self.all_movies_by_imdb[movie.imdb_id()] = movie
+        if r.status_code == 200:
+            if movie.has_imdb_id():
+                self.all_movies_by_imdb[movie.imdb_id()] = movie
+            else:
+                print("warning! this movie does not have an imdb id: " + str(movie))
         return r.status_code
 
     def remove_movie(self, movie):
