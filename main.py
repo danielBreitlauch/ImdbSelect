@@ -9,7 +9,7 @@ from Score11 import Score11
 worker = ImdbSelect(config)
 
 score11 = Score11(Imdb())
-imdb_ids = score11.imdb_ids_for_sneak('Paderborn', 'Cineplex', minimum_rating=8.0)
+imdb_ids = score11.imdb_ids_for_sneak('Paderborn', 'Cineplex', minimum_rating=7.0)
 
 worker.add_all_imdb_ids(imdb_ids, rating_above=7.5, votes_above=300, retry=False)
 worker.add_all_imdb_ids(imdb_ids, rating_above=6, votes_above=100, manual=True, retry=False)
