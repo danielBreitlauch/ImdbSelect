@@ -94,6 +94,7 @@ class Imdb:
                     whole_date = date.split('::')[1]
                     if str(year) in whole_date:
                         return movie
-                    if movie['title'] == title and str(year + 1) in whole_date and 'December' in whole_date:
-                        return movie
+                    if movie['title'].lower() == title.lower() and str(year + 1) in whole_date:
+                        if 'January' in whole_date or 'February' in whole_date:
+                            return movie
         return None
