@@ -25,19 +25,28 @@ class Movie:
             return ""
 
     def rating_above(self, rating_above):
-        return self.json['ratings']['value'] > rating_above
+        return 'ratings' in self.json and 'value' in self.json['ratings'] and self.json['ratings']['value'] > rating_above
 
     def votes_above(self, votes_above):
-        return self.json['ratings']['votes'] > votes_above
+        return 'ratings' in self.json and 'votes' in self.json['ratings'] and self.json['ratings']['votes'] > votes_above
 
     def rating(self):
-        return "ratings: " + str(self.json['ratings']['value']) + "/10, votes: " + str(self.json['ratings']['votes'])
+        if 'ratings' in self.json and 'value' in self.json['ratings'] and 'votes' in self.json['ratings']:
+            return "ratings: " + str(self.json['ratings']['value']) + "/10, votes: " + str(self.json['ratings']['votes'])
+        else:
+            return "<has no ratings>"
 
     def year(self):
-        return str(self.json['year'])
+        if 'year' in self.json:
+            return str(self.json['year'])
+        else:
+            return '<has no year>'
 
     def title(self):
-        return self.json['title']
+        if 'title' in self.json:
+            return self.json['title']
+        else:
+            return '<has no title>'
 
     def downloaded(self):
         return self.json['downloaded']

@@ -23,12 +23,12 @@ class Imdb:
         ids = []
         for kind in full_person['filmography']:
             if role == 'actx':
-                if 'actor' in kind:
-                    for movie in kind['actor']:
+                if 'actor' == kind:
+                    for movie in full_person['filmography']['actor']:
                         if movie.data['kind'] == filter:
                             ids.append('tt' + movie.movieID)
                 if 'actress' in kind:
-                    for movie in kind['actress']:
+                    for movie in full_person['filmography']['actress']:
                         if movie.data['kind'] == filter:
                             ids.append('tt' + movie.movieID)
             elif role in kind:
@@ -82,7 +82,7 @@ class Imdb:
 
     def search_movie(self, title, year=None, strict=True):
         for movie in self.name_candidates(title, strict):
-            if not year or movie['year'] == year:
+            if not year or 'year' in movie or movie['year'] == year:
                 return movie
 
             if movie['title'] == title and movie['year'] == year + 1:

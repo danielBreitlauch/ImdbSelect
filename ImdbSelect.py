@@ -16,7 +16,7 @@ class ImdbSelect:
         self.ask = Preferences(self.imdb)
 
     def add_all_actors(self, actors, rating_above=0, votes_above=0, manual=False, retry=True):
-        for count, actor in enumerate(actors):
+        for count, actor in enumerate(actors, start=1):
             print("[ " + str(count) + "/" + str(len(actors)) + " ] going through all movies with: " + actor)
             imdb_ids = self.imdb.imdb_id_list_from_person(actor)
             self.add_all_imdb_ids(imdb_ids, rating_above, votes_above, manual, retry)

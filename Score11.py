@@ -24,8 +24,8 @@ class Score11:
             max_retries=Retry(total=5, status_forcelist=[500, 503])
         ))
 
-    def imdb_ids_for_sneak(self, city, cinema=None, screening=None, minimum_rating=0.0):
-        movies = self.score11_movies(city, cinema, screening, minimum_rating)
+    def imdb_ids_for_sneak(self, city, cinema=None, screening=None, minimum_rating=0.0, maximum_rating=9999.0):
+        movies = self.score11_movies(city, cinema, screening, minimum_rating, maximum_rating)
         imdb_ids = []
         for count, movie in enumerate(movies, start=1):
             print("[ " + str(count) + "/" + str(len(movies)) + " ]")
@@ -37,7 +37,7 @@ class Score11:
                 print(Fore.RED + '\tNo match on imdb found' + Style.RESET_ALL)
         return imdb_ids
 
-    def score11_movies(self, city, cinema=None, screening=None, minimum_rating=0.0):
+    def score11_movies(self, city, cinema=None, screening=None, minimum_rating=0.0, maximum_rating=9999.0):
         if not cinema:
             cinemas = self.sneak_cinema_options(city)
             print("Found these cinemas: " + ', '.join(cinemas))
@@ -58,7 +58,7 @@ class Score11:
                 score11_movies.update(self.get_sneak_titles(city, cinema, screening))
 
         score11_movies = sorted(score11_movies.values(), key=lambda m: m['rating'])
-        return [m for m in score11_movies if m['rating'] > minimum_rating]
+        return [m for m in score11_movies if minimum_rating < m['rating'] <= maximum_rating]
 
     def imdb_id_for_movie(self, movie):
         match = self.imdb.search_movie(movie['title'], movie['year'], False)
@@ -123,14 +123,19 @@ class Score11:
         for row in rows:
             cells = row.find_all("td")
             extended = cells[3].find(text=True, recursive=False).strip()
+
             movie = {
                 'date': cells[0].get_text().strip().replace(u'\xa0', u' '),
                 'title': cells[3].find("a").get_text().replace(u'\x96', u'-'),
-                'year': int(extended[:4]),
                 'rating': float(cells[5].get_text()),
                 'votes': int(cells[6].get_text()),
                 'link': cells[3].find("a").get('href'),
             }
+
+            if is_int(extended[:4]):
+                movie['year'] = int(extended[:4])
+            else:
+                movie['year'] = -1
 
             movies[movie['title'] + str(movie['year'])] = movie
         return movies
@@ -157,3 +162,10 @@ class Score11:
             year = int(m.group(2))
             return title, year
         return None, None
+
+def is_int(string):
+    try:
+        int(string)
+        return True
+    except ValueError:
+        return False
